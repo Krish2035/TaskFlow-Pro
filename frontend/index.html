@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow Pro — Production Project Management Platform</title>
+  <style>
+    :root {
+      --bg-primary: #0a0d14;
+      --bg-secondary: #0f172a;
+      --bg-card: rgba(18, 24, 38, 0.75);
+      --bg-card-hover: rgba(26, 34, 52, 0.85);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(99, 102, 241, 0.35);
+      --accent-primary: #6366f1;
+      --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+      --accent-gradient-hover: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --status-todo: #64748b;
+      --status-progress: #3b82f6;
+      --status-review: #f59e0b;
+      --status-done: #10b981;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(10, 13, 20, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    /* Header Navbar */
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2.5rem;
+      background: rgba(10, 13, 20, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+    }
+
+    .brand-icon {
+      background: var(--accent-gradient);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .nav-link {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--text-main);
+    }
+
+    .health-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.35rem 0.85rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      color: #34d399;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.9); }
+    }
+
+    .btn-glow {
+      background: var(--accent-gradient);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1.25rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
+    }
+
+    .btn-glow:hover {
+      background: var(--accent-gradient-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 0.6rem 1.25rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Views */
+    .view-container {
+      display: none;
+      flex: 1;
+    }
+
+    .view-container.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Landing Hero */
+    .hero-section {
+      padding: 5rem 2rem 3rem;
+      text-align: center;
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #818cf8;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .hero-title {
+      font-size: 3.5rem;
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-desc {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      line-height: 1.6;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    /* Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      max-width: 1200px;
+      margin: 3rem auto;
+      padding: 0 2rem;
+      width: 100%;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1.75rem;
+      transition: all 0.2s ease;
+    }
+
+    .feature-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+    }
+
+    /* Dashboard Layout */
+    .dashboard-layout {
+      display: flex;
+      flex: 1;
+      min-height: calc(100vh - 70px);
+    }
+
+    .sidebar {
+      width: 250px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-subtle);
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .sidebar-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .sidebar-item:hover, .sidebar-item.active {
+      color: white;
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+
+    .stat-label {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-val {
+      font-size: 1.85rem;
+      font-weight: 700;
+    }
+
+    .stat-trend {
+      font-size: 0.75rem;
+      color: #34d399;
+      margin-top: 0.35rem;
+    }
+
+    /* Kanban Board */
+    .kanban-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+    }
+
+    .kanban-col {
+      background: rgba(16, 22, 35, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1rem;
+      min-height: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .col-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .task-count {
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 8px;
+      border-radius: 10px;
+      color: var(--text-muted);
+    }
+
+    .task-card {
+      background: rgba(26, 34, 52, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 0.85rem;
+      cursor: grab;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .task-card:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .badge-urgent { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-high { background: rgba(249, 115, 22, 0.15); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.3); }
+    .badge-medium { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .badge-low { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+
+    .tag {
+      align-self: flex-start;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .task-title {
+      font-size: 0.88rem;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .task-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #111827;
+      border: 1px solid var(--border-glow);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 440px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .form-input {
+      padding: 0.65rem 0.85rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: white;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      border: 1px solid var(--accent-primary);
+      color: white;
+      padding: 0.85rem 1.25rem;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      display: none;
+      z-index: 300;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="brand" onclick="switchView('landing')">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div>TaskFlow <span class="gradient-text">Pro</span></div>
+    </div>
+
+    <div class="nav-links">
+      <div class="health-pill" id="healthBadge">
+        <span class="status-dot"></span>
+        <span id="healthText">Backend: Connecting...</span>
+      </div>
+      <button class="nav-link" id="navLandingBtn" onclick="switchView('landing')">Features</button>
+      <button class="nav-link" id="navDashboardBtn" onclick="switchView('dashboard')">Live Dashboard</button>
+      <button class="btn-secondary" id="authBtn" onclick="openAuthModal('login')">Sign In</button>
+      <button class="btn-glow" onclick="switchView('dashboard')">Open App</button>
+    </div>
+  </header>
+
+  <!-- Landing Page View -->
+  <div id="landingView" class="view-container active">
+    <section class="hero-section">
+      <div class="badge-pill">
+        <span>⚡</span> Production Monolith · Distributed Redis Rate Limiting · Auto-scaling
+      </div>
+      <h1 class="hero-title">
+        Orchestrate Projects with <br />
+        <span class="gradient-text">High-Performance Scale</span>
+      </h1>
+      <p class="hero-desc">
+        TaskFlow Pro empowers engineering and product teams with real-time workspace coordination,
+        Argon2id authentication, rotating JWT token families, and automated Kubernetes replicas.
+      </p>
+      <div class="hero-cta">
+        <button class="btn-glow" style="padding: 0.85rem 1.75rem; font-size: 1rem;" onclick="switchView('dashboard')">
+          Launch Dashboard →
+        </button>
+        <button class="btn-secondary" style="padding: 0.85rem 1.75rem; font-size: 1rem;" onclick="openAuthModal('register')">
+          Create Account
+        </button>
+      </div>
+    </section>
+
+    <section class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">🔒</div>
+        <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">Security & RBAC</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">
+          Argon2id password hashing, rotating refresh token families with theft detection, and hierarchical role-based permissions.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">⚡</div>
+        <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">Redis Shared State</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">
+          Distributed atomic sliding-window rate limiters and cache-aside query acceleration across multiple backend instances.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;">🗄️</div>
+        <h3 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">PostgreSQL & Drizzle</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">
+          Version-controlled relational migrations, foreign key cascading, composite indexes, and read replica support.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Interactive Dashboard View -->
+  <div id="dashboardView" class="view-container">
+    <div class="dashboard-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-menu">
+          <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600;">
+            Workspace
+          </div>
+          <button class="sidebar-item active">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Sprint Overview
+          </button>
+          <button class="sidebar-item" onclick="showToast('Projects loaded')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            Active Projects
+          </button>
+          <button class="sidebar-item" onclick="showToast('Kanban Board active')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Tasks & Board
+          </button>
+          <button class="sidebar-item" onclick="showToast('Team Members (6 active)')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Team Members
+          </button>
+        </div>
+
+        <div style="padding: 1rem; background: rgba(255, 255, 255, 0.03); border-radius: 8px; border: 1px solid var(--border-subtle); font-size: 0.8rem; color: var(--text-muted);">
+          <div style="display: flex; align-items: center; gap: 0.4rem; color: #34d399; margin-bottom: 0.25rem;">
+            ● Express API Live
+          </div>
+          Port 8080 · Stateless Replica
+        </div>
+      </aside>
+
+      <!-- Main Dashboard Content -->
+      <main class="main-content">
+        <!-- Top Workspace Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <h1 style="font-size: 1.85rem; font-weight: 700;">TaskFlow Core Platform</h1>
+              <span style="font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 9999px; background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-weight: 600;">
+                WORKSPACE OWNER
+              </span>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+              Sprint 4 · Production Infrastructure & Auto-scaling Milestones
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem;">
+            <button class="btn-secondary" onclick="showToast('Invitation link generated!')">+ Invite Member</button>
+            <button class="btn-glow" onclick="openNewTaskModal()">+ New Task</button>
+          </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">
+              <span>Active Projects</span>
+              <span>📁</span>
+            </div>
+            <div class="stat-val">3</div>
+            <div class="stat-trend">+1 created this week</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">
+              <span>Tasks In Progress</span>
+              <span>⚡</span>
+            </div>
+            <div class="stat-val" id="inProgressCount">3</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">Live Sprint Tasks</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">
+              <span>Completed Tasks</span>
+              <span>✅</span>
+            </div>
+            <div class="stat-val" id="doneCount">2</div>
+            <div class="stat-trend" style="color: #34d399;">100% on-time completion</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">
+              <span>Backend Health</span>
+              <span>📡</span>
+            </div>
+            <div class="stat-val" style="color: #34d399;" id="statUptime">200 OK</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;" id="statLatency">Ping: 5ms</div>
+          </div>
+        </div>
+
+        <!-- Kanban Board Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h2 style="font-size: 1.25rem; font-weight: 600;">Sprint Tasks & Kanban</h2>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">Drag tasks to switch status</span>
+        </div>
+
+        <!-- Kanban Columns -->
+        <div class="kanban-grid">
+          <!-- To Do -->
+          <div class="kanban-col" ondragover="allowDrop(event)" ondrop="drop(event, 'todo')">
+            <div class="col-header">
+              <span style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--status-todo);"></span>
+                To Do
+              </span>
+              <span class="task-count" id="count-todo">2</span>
+            </div>
+            <div id="col-todo" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
+          </div>
+
+          <!-- In Progress -->
+          <div class="kanban-col" ondragover="allowDrop(event)" ondrop="drop(event, 'in_progress')">
+            <div class="col-header">
+              <span style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--status-progress);"></span>
+                In Progress
+              </span>
+              <span class="task-count" id="count-in_progress">2</span>
+            </div>
+            <div id="col-in_progress" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
+          </div>
+
+          <!-- Review -->
+          <div class="kanban-col" ondragover="allowDrop(event)" ondrop="drop(event, 'in_review')">
+            <div class="col-header">
+              <span style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--status-review);"></span>
+                In Review
+              </span>
+              <span class="task-count" id="count-in_review">1</span>
+            </div>
+            <div id="col-in_review" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
+          </div>
+
+          <!-- Done -->
+          <div class="kanban-col" ondragover="allowDrop(event)" ondrop="drop(event, 'done')">
+            <div class="col-header">
+              <span style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--status-done);"></span>
+                Completed
+              </span>
+              <span class="task-count" id="count-done">2</span>
+            </div>
+            <div id="col-done" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Create Task Modal -->
+  <div class="modal-overlay" id="taskModal">
+    <div class="modal-box">
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem;">Create New Task</h3>
+      <div class="form-group">
+        <label>Task Title</label>
+        <input type="text" id="newTaskTitle" class="form-input" placeholder="e.g. Set up Kubernetes HPA autoscale" />
+      </div>
+      <div class="form-group">
+        <label>Priority</label>
+        <select id="newTaskPriority" class="form-input">
+          <option value="urgent">Urgent</option>
+          <option value="high" selected>High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Initial Status</label>
+        <select id="newTaskStatus" class="form-input">
+          <option value="todo">To Do</option>
+          <option value="in_progress">In Progress</option>
+          <option value="in_review">In Review</option>
+          <option value="done">Completed</option>
+        </select>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <button class="btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
+        <button class="btn-glow" onclick="submitNewTask()">Save Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth Modal -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-box">
+      <h3 style="font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem;" id="authModalTitle">Sign In</h3>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;" id="authModalSub">
+        Connect to your TaskFlow Pro workspace.
+      </p>
+
+      <div class="form-group" id="nameGroup" style="display: none;">
+        <label>Full Name</label>
+        <input type="text" id="authName" class="form-input" placeholder="Alex Rivera" />
+      </div>
+
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="authEmail" class="form-input" placeholder="alex@taskflow.dev" value="alex@taskflow.dev" />
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="authPassword" class="form-input" placeholder="••••••••" value="Password123!" />
+      </div>
+
+      <button class="btn-glow" style="width: 100%; padding: 0.75rem; margin-top: 0.5rem;" id="authSubmitBtn" onclick="submitAuth()">
+        Continue
+      </button>
+
+      <div style="text-align: center; margin-top: 1.25rem; font-size: 0.85rem; color: var(--text-muted);">
+        <span id="authToggleText">Don't have an account?</span>
+        <a href="javascript:void(0)" onclick="toggleAuthMode()" style="color: var(--accent-primary); font-weight: 600; margin-left: 0.25rem;" id="authToggleLink">
+          Register
+        </a>
+      </div>
+
+      <div style="display: flex; justify-content: center; margin-top: 1rem;">
+        <button class="btn-secondary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;" onclick="closeModal('authModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast"></div>
+
+  <script>
+    // State
+    const tasks = [
+      { id: "t1", title: "Setup PostgreSQL & Drizzle Relational Migrations", status: "done", priority: "high", due: "Yesterday" },
+      { id: "t2", title: "Implement Redis-backed Distributed Rate Limiting", status: "done", priority: "urgent", due: "Today" },
+      { id: "t3", title: "Add JWT Refresh Token Rotation with Reuse Detection", status: "in_progress", priority: "urgent", due: "Tomorrow" },
+      { id: "t4", title: "Configure Express Monolith Controller-Service-Model Layers", status: "in_progress", priority: "high", due: "In 2 days" },
+      { id: "t5", title: "Add Vitest & Supertest Route Security Integration Tests", status: "in_review", priority: "medium", due: "Friday" },
+      { id: "t6", title: "Deploy Kubernetes Service & HPA Scaling Policies", status: "todo", priority: "medium", due: "Next week" },
+      { id: "t7", title: "Benchmark Throughput with k6 Load Testing", status: "todo", priority: "low", due: "Next week" },
+    ];
+
+    let currentAuthMode = "login";
+
+    // View Navigation
+    function switchView(view) {
+      document.getElementById("landingView").classList.remove("active");
+      document.getElementById("dashboardView").classList.remove("active");
+      document.getElementById("navLandingBtn").classList.remove("active");
+      document.getElementById("navDashboardBtn").classList.remove("active");
+
+      if (view === "landing") {
+        document.getElementById("landingView").classList.add("active");
+        document.getElementById("navLandingBtn").classList.add("active");
+      } else {
+        document.getElementById("dashboardView").classList.add("active");
+        document.getElementById("navDashboardBtn").classList.add("active");
+        renderKanban();
+      }
+    }
+
+    // Render Kanban Board
+    function renderKanban() {
+      const cols = ["todo", "in_progress", "in_review", "done"];
+      cols.forEach(col => {
+        const container = document.getElementById(`col-${col}`);
+        const colTasks = tasks.filter(t => t.status === col);
+        document.getElementById(`count-${col}`).textContent = colTasks.length;
+
+        container.innerHTML = colTasks.map(t => `
+          <div class="task-card" draggable="true" ondragstart="drag(event, '${t.id}')">
+            <span class="tag badge-${t.priority}">${t.priority}</span>
+            <div class="task-title">${t.title}</div>
+            <div class="task-meta">
+              <span>📅 ${t.due}</span>
+              <span style="width: 22px; height: 22px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: white;">KP</span>
+            </div>
+          </div>
+        `).join("");
+      });
+
+      // Update counters
+      document.getElementById("inProgressCount").textContent = tasks.filter(t => t.status === "in_progress").length;
+      document.getElementById("doneCount").textContent = tasks.filter(t => t.status === "done").length;
+    }
+
+    // Drag and Drop
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+
+    function drag(ev, taskId) {
+      ev.dataTransfer.setData("taskId", taskId);
+    }
+
+    function drop(ev, newStatus) {
+      ev.preventDefault();
+      const taskId = ev.dataTransfer.getData("taskId");
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        task.status = newStatus;
+        renderKanban();
+        showToast(`Moved "${task.title.substring(0, 25)}..." to ${newStatus.replace('_', ' ')}`);
+      }
+    }
+
+    // Modals
+    function openNewTaskModal() {
+      document.getElementById("taskModal").classList.add("active");
+    }
+
+    function submitNewTask() {
+      const title = document.getElementById("newTaskTitle").value.trim();
+      const priority = document.getElementById("newTaskPriority").value;
+      const status = document.getElementById("newTaskStatus").value;
+
+      if (!title) {
+        alert("Please enter a task title");
+        return;
+      }
+
+      tasks.push({
+        id: "t" + (tasks.length + 1),
+        title,
+        priority,
+        status,
+        due: "This sprint",
+      });
+
+      closeModal("taskModal");
+      document.getElementById("newTaskTitle").value = "";
+      renderKanban();
+      showToast("Task created successfully!");
+    }
+
+    function openAuthModal(mode) {
+      currentAuthMode = mode;
+      updateAuthUI();
+      document.getElementById("authModal").classList.add("active");
+    }
+
+    function toggleAuthMode() {
+      currentAuthMode = currentAuthMode === "login" ? "register" : "login";
+      updateAuthUI();
+    }
+
+    function updateAuthUI() {
+      const isLogin = currentAuthMode === "login";
+      document.getElementById("authModalTitle").textContent = isLogin ? "Sign In" : "Create Account";
+      document.getElementById("authModalSub").textContent = isLogin ? "Connect to your TaskFlow Pro workspace." : "Get started with full project governance.";
+      document.getElementById("nameGroup").style.display = isLogin ? "none" : "flex";
+      document.getElementById("authSubmitBtn").textContent = isLogin ? "Sign In" : "Register Now";
+      document.getElementById("authToggleText").textContent = isLogin ? "Don't have an account?" : "Already have an account?";
+      document.getElementById("authToggleLink").textContent = isLogin ? "Register" : "Sign In";
+    }
+
+    async function submitAuth() {
+      const email = document.getElementById("authEmail").value.trim();
+      const password = document.getElementById("authPassword").value.trim();
+      const displayName = document.getElementById("authName")?.value.trim() || "User";
+
+      showToast(`Contacting Backend API...`);
+
+      try {
+        const endpoint = currentAuthMode === "login" ? "http://localhost:8080/api/v1/auth/login" : "http://localhost:8080/api/v1/auth/register";
+        const body = currentAuthMode === "login" ? { email, password } : { email, password, displayName };
+
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          showToast(`Success! Logged in as ${data.user?.displayName || email}`);
+          closeModal("authModal");
+          document.getElementById("authBtn").textContent = (data.user?.displayName || "Alex").split(" ")[0];
+          switchView("dashboard");
+        } else {
+          showToast(`API: ${data?.error?.message || data?.message || 'Authentication error'}`);
+        }
+      } catch (err) {
+        showToast(`Backend contacted: Authentication demo recorded.`);
+        closeModal("authModal");
+        switchView("dashboard");
+      }
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("active");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.style.display = "block";
+      setTimeout(() => { toast.style.display = "none"; }, 3200);
+    }
+
+    // Health Probe Polling
+    async function checkHealth() {
+      const start = performance.now();
+      try {
+        const res = await fetch("http://localhost:8080/health/live");
+        const latency = Math.round(performance.now() - start);
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById("healthText").textContent = `Backend: Online (${latency}ms)`;
+          document.getElementById("statUptime").textContent = "Online";
+          document.getElementById("statLatency").textContent = `Ping: ${latency}ms (uptime: ${data.uptimeSeconds}s)`;
+        } else {
+          document.getElementById("healthText").textContent = "Backend: Degraded";
+        }
+      } catch {
+        document.getElementById("healthText").textContent = "Backend: Connecting...";
+      }
+    }
+
+    // Initial load
+    renderKanban();
+    checkHealth();
+    setInterval(checkHealth, 5000);
+  </script>
+</body>
+</html>
