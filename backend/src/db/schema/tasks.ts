@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, timestamp, integer, index } from "drizzle-orm/pg-core";
 import { projects } from "./projects";
 import { users } from "./users";
 
@@ -14,6 +14,8 @@ export const tasks = pgTable(
     status: varchar("status", { length: 30 }).notNull().default("todo"), // todo, in_progress, in_review, done
     priority: varchar("priority", { length: 20 }).notNull().default("medium"), // low, medium, high, urgent
     dueAt: timestamp("due_at", { withTimezone: true }),
+    version: integer("version").default(1).notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdBy: uuid("created_by")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),

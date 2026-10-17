@@ -2,11 +2,19 @@ import { Request, Response, NextFunction } from "express";
 import { TaskService } from "../services/task.service";
 import { broadcastRealtime } from "../realtime/websocket";
 
+function getAuditContext(req: Request) {
+  return {
+    actorId: req.user?.userId,
+    ipAddress: (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "127.0.0.1",
+    userAgent: req.headers["user-agent"] || "TaskFlow-Web/1.0",
+  };
+}
+
 export class TaskController {
   static async createTask(req: Request, res: Response, next: NextFunction) {
     try {
       const projectId = req.params.projectId;
-      const task = await TaskService.createTask(req.user!.userId, projectId, req.body);
+      const task = await TaskService.createTask(req.user!.userId, projectId, req.body, getAuditContext(req));
 
       broadcastRealtime({
         type: "TASK_CREATED",
@@ -55,7 +63,8 @@ export class TaskController {
 
   static async updateTask(req: Request, res: Response, next: NextFunction) {
     try {
-      const updated = await TaskService.updateTask(req.params.taskId, req.body);
+      const expectedVersion = req.body.version !== undefined ? parseInt(req.body.version, 10) : undefined;
+      const updated = await TaskService.updateTask(req.params.taskId, req.body, expectedVersion, getAuditContext(req));
 
       broadcastRealtime({
         type: "TASK_MOVED",
@@ -70,6 +79,41 @@ export class TaskController {
       res.status(200).json({
         message: "Task updated successfully",
         data: updated,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteTask(req: Request, res: Response, next: NextFunction) {
+    try {
+      const deleted = await TaskService.deleteTask(req.params.taskId, true, getAuditContext(req));
+      res.status(200).json({
+        message: "Task moved to trash (soft deleted)",
+        data: deleted,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async restoreTask(req: Request, res: Response, next: NextFunction) {
+    try {
+      const restored = await TaskService.restoreTask(req.params.taskId, getAuditContext(req));
+      res.status(200).json({
+        message: "Task successfully restored from trash",
+        data: restored,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async listTrash(req: Request, res: Response, next: NextFunction) {
+    try {
+      const trash = await TaskService.listTrash(req.params.projectId);
+      res.status(200).json({
+        data: trash,
       });
     } catch (error) {
       next(error);

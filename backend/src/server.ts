@@ -4,9 +4,11 @@ import { logger } from "./middleware/logger";
 import { pool } from "./db/connections";
 import { redis, initRedis } from "./cache/redis";
 import { setupRealtimeWebSocket } from "./realtime/websocket";
+import { JobQueue } from "./jobs/queue";
 
 async function startServer() {
   await initRedis();
+  JobQueue.startWorker();
 
   const server = app.listen(env.PORT, () => {
     logger.info(`🚀 TaskFlow Pro Backend running on port ${env.PORT} in ${env.NODE_ENV} mode`);

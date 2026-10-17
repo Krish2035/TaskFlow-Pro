@@ -12,6 +12,7 @@ export const projects = pgTable(
     name: varchar("name", { length: 100 }).notNull(),
     description: text("description"),
     status: varchar("status", { length: 30 }).notNull().default("active"),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdBy: uuid("created_by")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),

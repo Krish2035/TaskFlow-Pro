@@ -20,4 +20,5 @@ const createTaskSchema = z.object({
 
 projectRouter.get("/:projectId", ProjectController.getProject);
 projectRouter.get("/:projectId/tasks", TaskController.listTasks);
+projectRouter.get("/:projectId/trash", TaskController.listTrash);
 projectRouter.post("/:projectId/tasks", validate(createTaskSchema), TaskController.createTask);

@@ -14,6 +14,7 @@ const updateTaskSchema = z.object({
   status: z.enum(["todo", "in_progress", "in_review", "done", "archived"]).optional(),
   priority: z.enum(["low", "medium", "high", "urgent"]).optional(),
   dueAt: z.string().datetime().optional().nullable().transform((val) => (val ? new Date(val) : null)),
+  version: z.number().int().optional(),
 });
 
 const addCommentSchema = z.object({
@@ -22,5 +23,7 @@ const addCommentSchema = z.object({
 
 taskRouter.get("/:taskId", TaskController.getTask);
 taskRouter.patch("/:taskId", validate(updateTaskSchema), TaskController.updateTask);
+taskRouter.delete("/:taskId", TaskController.deleteTask);
+taskRouter.post("/:taskId/restore", TaskController.restoreTask);
 taskRouter.get("/:taskId/comments", TaskController.listComments);
 taskRouter.post("/:taskId/comments", validate(addCommentSchema), TaskController.addComment);
