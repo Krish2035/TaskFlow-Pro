@@ -1,11 +1,23 @@
 import { Request, Response, NextFunction } from "express";
 import { TaskService } from "../services/task.service";
+import { broadcastRealtime } from "../realtime/websocket";
 
 export class TaskController {
   static async createTask(req: Request, res: Response, next: NextFunction) {
     try {
       const projectId = req.params.projectId;
       const task = await TaskService.createTask(req.user!.userId, projectId, req.body);
+
+      broadcastRealtime({
+        type: "TASK_CREATED",
+        taskId: task.id,
+        title: task.title,
+        newStatus: task.status,
+        priority: task.priority,
+        author: req.user?.displayName || "Teammate",
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(201).json({
         message: "Task created successfully",
         data: task,
@@ -44,6 +56,17 @@ export class TaskController {
   static async updateTask(req: Request, res: Response, next: NextFunction) {
     try {
       const updated = await TaskService.updateTask(req.params.taskId, req.body);
+
+      broadcastRealtime({
+        type: "TASK_MOVED",
+        taskId: updated.id,
+        title: updated.title,
+        newStatus: updated.status,
+        priority: updated.priority,
+        author: req.user?.displayName || "Teammate",
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(200).json({
         message: "Task updated successfully",
         data: updated,

@@ -3,6 +3,7 @@ import { env } from "./config/env";
 import { logger } from "./middleware/logger";
 import { pool } from "./db/connections";
 import { redis, initRedis } from "./cache/redis";
+import { setupRealtimeWebSocket } from "./realtime/websocket";
 
 async function startServer() {
   await initRedis();
@@ -10,7 +11,10 @@ async function startServer() {
   const server = app.listen(env.PORT, () => {
     logger.info(`🚀 TaskFlow Pro Backend running on port ${env.PORT} in ${env.NODE_ENV} mode`);
     logger.info(`📡 Probes available at http://localhost:${env.PORT}/health/live and http://localhost:${env.PORT}/health/ready`);
+    logger.info(`⚡ Live WebSocket server mounted at ws://localhost:${env.PORT}/ws`);
   });
+
+  setupRealtimeWebSocket(server);
 
   let isShuttingDown = false;
 
