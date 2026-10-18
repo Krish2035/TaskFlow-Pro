@@ -4,6 +4,7 @@ import { workspaceRouter } from "./workspace.routes";
 import { projectRouter } from "./project.routes";
 import { taskRouter } from "./task.routes";
 import { enterpriseRouter } from "./enterprise.routes";
+import { billingRouter } from "./billing.routes";
 
 export const apiV1Router = Router();
 
@@ -18,6 +19,7 @@ apiV1Router.get("/", (_req, res) => {
       workspaces: "/api/v1/workspaces",
       projects: "/api/v1/projects",
       tasks: "/api/v1/tasks",
+      billing: "/api/v1/billing",
       jobs: "/api/v1/jobs/stats",
       topology: "/api/v1/system/topology",
     },
@@ -28,5 +30,6 @@ apiV1Router.use("/auth", authRouter);
 apiV1Router.use("/workspaces", workspaceRouter);
 apiV1Router.use("/projects", projectRouter);
 apiV1Router.use("/tasks", taskRouter);
+apiV1Router.use("/billing", billingRouter);
 apiV1Router.use("/", enterpriseRouter);
 

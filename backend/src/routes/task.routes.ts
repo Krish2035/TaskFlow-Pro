@@ -21,9 +21,22 @@ const addCommentSchema = z.object({
   body: z.string().min(1, "Comment body is required"),
 });
 
+import multer from "multer";
+import { AttachmentController } from "../controllers/attachment.controller";
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB max
+});
+
 taskRouter.get("/:taskId", TaskController.getTask);
 taskRouter.patch("/:taskId", validate(updateTaskSchema), TaskController.updateTask);
 taskRouter.delete("/:taskId", TaskController.deleteTask);
 taskRouter.post("/:taskId/restore", TaskController.restoreTask);
 taskRouter.get("/:taskId/comments", TaskController.listComments);
 taskRouter.post("/:taskId/comments", validate(addCommentSchema), TaskController.addComment);
+
+// Task File Attachments (Cloud Storage / S3 / Local)
+taskRouter.get("/:taskId/attachments", AttachmentController.listAttachments);
+taskRouter.post("/:taskId/attachments", upload.single("file"), AttachmentController.uploadAttachment);
+taskRouter.delete("/:taskId/attachments/:attachmentId", AttachmentController.deleteAttachment);

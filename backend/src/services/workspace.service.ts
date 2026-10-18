@@ -4,6 +4,7 @@ import { workspaces } from "../db/schema/workspaces";
 import { workspaceMembers } from "../db/schema/workspaceMembers";
 import { users } from "../db/schema/users";
 import { AppError } from "../middleware/error-handler";
+import { EmailService } from "./email.service";
 
 export class WorkspaceService {
   static async createWorkspace(userId: string, data: { name: string; slug: string }) {
@@ -98,5 +99,80 @@ export class WorkspaceService {
       .from(workspaceMembers)
       .innerJoin(users, eq(workspaceMembers.userId, users.id))
       .where(eq(workspaceMembers.workspaceId, workspaceId));
+  }
+
+  static async inviteMember(
+    workspaceId: string,
+    inviterUserId: string,
+    data: { email: string; role?: string }
+  ) {
+    const email = data.email.trim().toLowerCase();
+    const role = data.role || "member";
+
+    // 1. Get workspace info
+    const [workspace] = await db
+      .select()
+      .from(workspaces)
+      .where(eq(workspaces.id, workspaceId))
+      .limit(1);
+
+    if (!workspace) {
+      throw new AppError("Workspace not found", 404, "NOT_FOUND");
+    }
+
+    // 2. Get inviter info
+    const [inviter] = await db
+      .select({ displayName: users.displayName, email: users.email })
+      .from(users)
+      .where(eq(users.id, inviterUserId))
+      .limit(1);
+
+    const inviterName = inviter?.displayName || inviter?.email || "A team member";
+
+    // 3. Check if user already exists
+    const [targetUser] = await db
+      .select({ id: users.id, email: users.email, displayName: users.displayName })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+    if (targetUser) {
+      // Check if already in workspace
+      const [existingMember] = await db
+        .select()
+        .from(workspaceMembers)
+        .where(
+          and(
+            eq(workspaceMembers.workspaceId, workspaceId),
+            eq(workspaceMembers.userId, targetUser.id)
+          )
+        )
+        .limit(1);
+
+      if (existingMember) {
+        throw new AppError("User is already a member of this workspace", 409, "ALREADY_MEMBER");
+      }
+
+      await db.insert(workspaceMembers).values({
+        workspaceId,
+        userId: targetUser.id,
+        role,
+      });
+    }
+
+    // 4. Dispatch Email via EmailService (Resend or Postmark)
+    const emailResult = await EmailService.sendWorkspaceInvitation({
+      to: email,
+      inviterName,
+      workspaceName: workspace.name,
+      workspaceSlug: workspace.slug,
+      role,
+    });
+
+    return {
+      message: `Invitation successfully sent to ${email}`,
+      emailResult,
+      isRegisteredUser: !!targetUser,
+    };
   }
 }

@@ -88,6 +88,14 @@ export class TaskController {
   static async deleteTask(req: Request, res: Response, next: NextFunction) {
     try {
       const deleted = await TaskService.deleteTask(req.params.taskId, true, getAuditContext(req));
+
+      broadcastRealtime({
+        type: "TASK_DELETED",
+        taskId: deleted.id,
+        author: req.user?.displayName || "Teammate",
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(200).json({
         message: "Task moved to trash (soft deleted)",
         data: deleted,
@@ -100,6 +108,17 @@ export class TaskController {
   static async restoreTask(req: Request, res: Response, next: NextFunction) {
     try {
       const restored = await TaskService.restoreTask(req.params.taskId, getAuditContext(req));
+
+      broadcastRealtime({
+        type: "TASK_CREATED",
+        taskId: restored.id,
+        title: restored.title,
+        newStatus: restored.status,
+        priority: restored.priority,
+        author: req.user?.displayName || "Teammate",
+        timestamp: new Date().toISOString(),
+      });
+
       res.status(200).json({
         message: "Task successfully restored from trash",
         data: restored,

@@ -46,4 +46,17 @@ export class WorkspaceController {
       next(error);
     }
   }
+
+  static async inviteMember(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await WorkspaceService.inviteMember(
+        req.params.workspaceId,
+        req.user!.userId,
+        req.body
+      );
+      res.status(201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

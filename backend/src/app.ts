@@ -55,6 +55,11 @@ if (env.NODE_ENV !== "test") {
 // Probes and Health routes
 app.use("/health", healthRouter);
 
+import path from "path";
+
+// Serve uploaded attachments statically
+app.use("/api/v1/uploads", express.static(path.resolve(process.cwd(), env.UPLOAD_DIR || "uploads")));
+
 // Versioned API v1 Router
 app.use("/api/v1", apiV1Router);
 

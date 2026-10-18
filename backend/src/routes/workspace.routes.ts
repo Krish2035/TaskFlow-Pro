@@ -21,10 +21,21 @@ const createProjectSchema = z.object({
   status: z.enum(["active", "archived", "completed"]).optional(),
 });
 
+const inviteMemberSchema = z.object({
+  email: z.string().email("Valid email address is required"),
+  role: z.enum(["admin", "member", "viewer"]).optional(),
+});
+
 workspaceRouter.get("/", WorkspaceController.listUserWorkspaces);
 workspaceRouter.post("/", validate(createWorkspaceSchema), WorkspaceController.createWorkspace);
 workspaceRouter.get("/:workspaceId", WorkspaceController.getWorkspace);
 workspaceRouter.get("/:workspaceId/members", requireWorkspaceRole("member"), WorkspaceController.listMembers);
+workspaceRouter.post(
+  "/:workspaceId/invitations",
+  requireWorkspaceRole("admin"),
+  validate(inviteMemberSchema),
+  WorkspaceController.inviteMember
+);
 
 // Projects within workspace
 workspaceRouter.post(

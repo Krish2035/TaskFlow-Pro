@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { redis } from "../cache/redis";
+import { EmailService } from "../services/email.service";
 
 export type JobType = "INVITE_EMAILS" | "EXPORT_PDF_REPORT" | "WEEKLY_DIGEST";
 
@@ -147,14 +148,28 @@ export class JobQueue {
   private static async executeJob(job: JobData): Promise<any> {
     switch (job.type) {
       case "INVITE_EMAILS": {
-        const emails: string[] = job.payload.emails || ["alex@taskflow.local", "maya@taskflow.local"];
-        console.log(`📨 [Worker] Dispatching ${emails.length} invitation emails in background...`);
-        // Simulate async non-blocking delay without holding user's HTTP request
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        const emails: string[] = job.payload.emails || [];
+        const inviterName = job.payload.invitedBy || "Team Lead";
+        const workspaceName = job.payload.workspaceName || "Workspace";
+        const inviteUrl = job.payload.inviteUrl;
+
+        console.log(`📨 [Worker] Dispatching ${emails.length} invitation emails via EmailService (Resend / Postmark)...`);
+        
+        const results = [];
+        for (const email of emails) {
+          const res = await EmailService.sendWorkspaceInvitation({
+            to: email,
+            inviterName,
+            workspaceName,
+            inviteUrl,
+          });
+          results.push({ email, ...res });
+        }
+
         return {
-          deliveredCount: emails.length,
+          deliveredCount: results.filter((r) => r.success).length,
           recipients: emails,
-          mailgunMessageId: `msg_${crypto.randomUUID().slice(0, 8)}@mail.taskflow.pro`,
+          results,
         };
       }
 

@@ -12,6 +12,8 @@ import { refreshTokens } from "./refreshTokens";
 import { passwordResetTokens } from "./passwordResetTokens";
 import { notifications } from "./notifications";
 import { activityLogs } from "./activityLogs";
+import { workspaceSubscriptions } from "./subscriptions";
+import { taskAttachments } from "./taskAttachments";
 
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -109,4 +111,6 @@ export {
   passwordResetTokens,
   notifications,
   activityLogs,
+  workspaceSubscriptions,
+  taskAttachments,
 };

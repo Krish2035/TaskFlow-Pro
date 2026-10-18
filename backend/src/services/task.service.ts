@@ -265,7 +265,8 @@ export class TaskService {
       return deleted;
     }
 
-    return await db.delete(tasks).where(eq(tasks.id, taskId)).returning();
+    const [hardDeleted] = await db.delete(tasks).where(eq(tasks.id, taskId)).returning();
+    return hardDeleted;
   }
 
   static async restoreTask(taskId: string, auditContext?: AuditContext) {

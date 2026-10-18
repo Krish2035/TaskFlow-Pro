@@ -45,4 +45,6 @@ redis_data/
 coverage/
 .vite/
 vitest.config.ts.timestamp*
+uploads/
+backend/uploads/
 

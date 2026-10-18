@@ -8,6 +8,7 @@ import { refreshTokens } from "../db/schema/refreshTokens";
 import { platformRoles } from "../db/schema/platformRoles";
 import { env } from "../config/env";
 import { AppError } from "../middleware/error-handler";
+import { EmailService } from "./email.service";
 
 function hashToken(token: string): string {
   return crypto.createHash("sha256").update(token).digest("hex");
@@ -68,6 +69,14 @@ export class AuthService {
         displayName: users.displayName,
         createdAt: users.createdAt,
       });
+
+    // Dispatch welcome email asynchronously via EmailService
+    EmailService.sendWelcomeEmail({
+      to: newUser.email,
+      displayName: newUser.displayName,
+    }).catch((err) => {
+      console.warn("⚠️ Failed to dispatch welcome email:", err?.message);
+    });
 
     return newUser;
   }
