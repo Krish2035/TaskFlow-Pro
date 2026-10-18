@@ -7,7 +7,18 @@ const envSchema = z.object({
   PORT: z.string().default("8080").transform((val) => parseInt(val, 10)),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DATABASE_URL: z.string().url().default("postgresql://taskflow:taskflow_secret_pass@localhost:5432/taskflow"),
-  REDIS_URL: z.string().url().default("redis://localhost:6379"),
+  REDIS_URL: z
+    .string()
+    .transform((val) => {
+      let cleaned = val.trim();
+      const match = cleaned.match(/(?:redis-cli\s+.*-u\s+)?(rediss?:\/\/[^\s]+)/);
+      if (match) {
+        cleaned = match[1];
+      }
+      return cleaned;
+    })
+    .pipe(z.string().url())
+    .default("redis://localhost:6379"),
   JWT_ACCESS_SECRET: z
     .string()
     .min(16, "JWT_ACCESS_SECRET must be at least 16 chars")
