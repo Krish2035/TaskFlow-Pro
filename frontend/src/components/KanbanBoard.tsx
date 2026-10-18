@@ -115,9 +115,19 @@ export function KanbanBoard({ projectId, onStatsUpdate, refreshTrigger = 0 }: Ka
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host = window.location.hostname;
-    const wsUrl = `${protocol}//${host}:8080/ws`;
+    let wsUrl: string;
+    if (process.env.NEXT_PUBLIC_WS_URL) {
+      wsUrl = process.env.NEXT_PUBLIC_WS_URL;
+    } else if (process.env.NEXT_PUBLIC_API_URL) {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const wsProtocol = apiUrl.startsWith("https") ? "wss:" : "ws:";
+      const hostPart = apiUrl.replace(/^https?:\/\//, "").replace(/\/api\/v1\/?$/, "");
+      wsUrl = `${wsProtocol}//${hostPart}/ws`;
+    } else {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const host = window.location.hostname;
+      wsUrl = `${protocol}//${host}:8080/ws`;
+    }
 
     let socket: WebSocket;
     try {
